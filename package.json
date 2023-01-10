@@ -1,0 +1,21 @@
+{
+  "name": "healthy_cakes_bot_node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "-": "^0.0.1",
+    "fs": "^0.0.1-security",
+    "i": "^0.3.7",
+    "node-telegram-bot-api": "^0.61.0",
+    "nodemon": "^2.0.20",
+    "npm": "^9.2.0",
+    "socks5-https-client": "^1.2.1"
+  }
+}
