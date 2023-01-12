@@ -1,17 +1,17 @@
 const fs = require("fs");
 const express = require("express");
-const cors = require("cors");
 
 const [{ token }] = JSON.parse(fs.readFileSync("./botData.json", "utf8"));
 const TelegramBot = require("node-telegram-bot-api");
 const bot = new TelegramBot(token, { polling: true });
 
 const app = express();
+const cors = require("cors");
 app.use(express.json());
 app.use(cors());
 
 // const webAppUrl = "https://jocular-tartufo-23c9c3.netlify.app";
-const webAppUrl = "https://6944-87-68-157-52.eu.ngrok.io";
+const webAppUrl = "https://611c-87-68-157-52.eu.ngrok.io/";
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
