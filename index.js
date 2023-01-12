@@ -2,7 +2,7 @@ const fs = require("fs");
 const express = require("express");
 const cors = require("cors");
 
-const token = JSON.parse(fs.readFileSync("./botData.json", "utf8"))[0].token;
+const [{ token }] = JSON.parse(fs.readFileSync("./botData.json", "utf8"));
 const TelegramBot = require("node-telegram-bot-api");
 const bot = new TelegramBot(token, { polling: true });
 
@@ -10,7 +10,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const webAppUrl = "https://jocular-tartufo-23c9c3.netlify.app";
+// const webAppUrl = "https://jocular-tartufo-23c9c3.netlify.app";
+const webAppUrl = "https://6944-87-68-157-52.eu.ngrok.io";
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
@@ -47,7 +48,7 @@ bot.on("message", async (msg) => {
   }
 });
 
-app.post("web-data", async (req, res) => {
+app.post("/web-data", async (req, res) => {
   const { queryId, products, totalPrice } = req.body;
   try {
     await bot.answerWebAppQuery(queryId, {
@@ -55,7 +56,9 @@ app.post("web-data", async (req, res) => {
       id: queryId,
       title: "successful purchase",
       input_message_content: {
-        message_text: "You purchased goods worth " + totalPrice,
+        message_text: `You purchased goods worth ${totalPrice}, ${products
+          .map((item) => item.title)
+          .join(", ")}`,
       },
     });
     return res.status(200).json({});
