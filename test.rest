@@ -1,0 +1,24 @@
+# POST http://localhost:8000/login
+# Content-Type: application/json
+
+#  {
+#         "user": "chikitonik",
+#         "md5Pwd": "4967f9ecfe85c27b89bc459a9a520c5b"
+#         }
+
+# POST http://localhost:8000/register
+# Content-Type: application/json
+
+#  {
+#         "user": "dddd21",
+#         "email": "test@email.com11",
+#         "md5Pwd": "ddddddddddddd1"
+#         }
+
+GET http://localhost:8000/users
+Content-Type: application/json
+
+#  {
+#         "user": "chikitonik",
+#         "md5Pwd": "4967f9ecfe85c27b89bc459a9a520c5b"
+#         }
