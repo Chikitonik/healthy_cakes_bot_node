@@ -24,8 +24,7 @@ app.use(cors(corsOptions));
 
 // elephantsql.com
 const pg = require("pg");
-const conString =
-  "postgres://zlogfhtn:1QH7EqOdOMtsubCEDwIHvN0KfUZopyyM@hattie.db.elephantsql.com/zlogfhtn"; //Can be found in the Details page
+const [{ conString }] = JSON.parse(fs.readFileSync("./sqlData.json", "utf8")); //Can be found in the Details page
 //#region --------------------users-----------------------------
 const selectAllUsers = async () => {
   const clientElephantSql = new pg.Client(conString);
