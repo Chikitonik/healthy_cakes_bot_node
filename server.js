@@ -22,92 +22,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// elephantsql.com
-const pg = require("pg");
-const [{ conString }] = JSON.parse(fs.readFileSync("./sqlData.json", "utf8")); //Can be found in the Details page
-//#region --------------------users-----------------------------
-const selectAllUsers = async () => {
-  const clientElephantSql = new pg.Client(conString);
-  return new Promise((resolve, reject) => {
-    clientElephantSql.connect(function (err) {
-      if (err) {
-        return reject(console.error("could not connect to postgres", err));
-      }
-      clientElephantSql.query(
-        "SELECT * FROM users",
-        async function (err, result) {
-          clientElephantSql.end();
-          if (err) {
-            return reject(err);
-          }
-          // console.log("result.rows[0]", result.rows[0]);
-          // console.log("result.rows", result.rows);
-          resolve(result.rows);
-        }
-      );
-    });
-  });
-};
-const selectUser = async (username, md5Pwd) => {
-  const clientElephantSql = new pg.Client(conString);
-
-  return new Promise((resolve, reject) => {
-    clientElephantSql.connect(function (err) {
-      if (err) {
-        return reject(console.error("could not connect to postgres", err));
-      }
-      clientElephantSql.query(
-        `SELECT * FROM users
-          WHERE username = '${username}'
-          and password = '${md5Pwd}'`,
-        async function (err, result) {
-          clientElephantSql.end();
-          if (err) {
-            console.log("err :>> ", err);
-            return reject(err);
-          }
-          // console.log("result.rows[0]", result.rows[0]);
-          // console.log("result.rows", result.rows);
-          resolve(result.rows);
-        }
-      );
-    });
-  });
-};
-const insertUser = async (username, email, md5Pwd) => {
-  const clientElephantSql = new pg.Client(conString);
-  return new Promise((resolve, reject) => {
-    clientElephantSql.connect(function (err) {
-      if (err) {
-        return reject(console.error("could not connect to postgres", err));
-      }
-      clientElephantSql.query(
-        `INSERT INTO users (username, password, email, role)
-        VALUES ('${username}', '${md5Pwd}', '${email}', '2')`,
-        async function (err, result) {
-          clientElephantSql.end();
-          if (err) {
-            // return reject(console.error("error running query >>", err));
-            return reject(err);
-          }
-          resolve(result.rows);
-        }
-      );
-    });
-  });
-};
-//#endregion
-
-/////////////////////
-// app.use(setUser);
-
-// function setUser(req, res, next) {
-//   const role = req.body.user.role;
-//   if (role) {
-//     req.user = users.find((user) => user.role === role);
-//   }
-//   next();
-// }
+const SQLQueries = require("./components/SQLQueries.js");
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
@@ -162,12 +77,48 @@ app.get("/admin", authUser, authRole(ROLES.ADMIN), (req, res) => {
   return res.status(200).json({ page: "Admin" });
 });
 
-app.get("/users", async (req, res) => {
+app.get("/admin/:table", async (req, res) => {
   // return res.json({ page: "register" });
+  const SQLtable = req.params.table;
   try {
-    const users = await selectAllUsers();
-    res.json([{ users }]);
+    const SQLtableData = await SQLQueries.selectDataFromSQLtable(SQLtable);
+    res.json([{ SQLtableData }]);
     // console.log("users :>> ", users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete("/admin/delete/:table/:id", async (req, res) => {
+  // return res.json({ page: "register" });
+  const SQLtable = req.params.table;
+  const id = req.params.id;
+  console.log("DELETE :>> ", SQLtable, id);
+  try {
+    const answer = await SQLQueries.deleteRowFromSQLtable(SQLtable, id);
+    answer === true
+      ? res.json([{ message: "row deleted" }])
+      : res.json([{ message: "error" }]);
+    console.log("answer :>> ", answer);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put("/admin/update/:table/:newRowValues", async (req, res) => {
+  // return res.json({ page: "register" });
+  const SQLtable = req.params.table;
+  const newRowValues = req.params.newRowValues;
+  console.log("UPDATE :>> ", SQLtable, newRowValues);
+  try {
+    const answer = await SQLQueries.updateDataInSQLtable(
+      SQLtable,
+      JSON.parse(newRowValues)
+    );
+    answer === true
+      ? res.json([{ message: "row updated" }])
+      : res.json([{ message: "error" }]);
+    console.log("answer :>> ", answer);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -176,7 +127,7 @@ app.get("/users", async (req, res) => {
 app.get("/user", async (req, res) => {
   // return res.json({ page: "register" });
   try {
-    const user = await selectUser();
+    const user = await SQLQueries.selectUser();
     res.json([{ user }]);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -186,7 +137,7 @@ app.post("/login", async (req, res) => {
   // return res.json({ page: "register" });
   console.log("req.body :>> ", req.body);
   try {
-    const result = await selectUser(req.body.user, req.body.md5Pwd);
+    const result = await SQLQueries.selectUser(req.body.user, req.body.md5Pwd);
     // const accessToken = jwt.sign(
     //   { username: result[0].username },
     //   process.env.ACCESS_TOKEN_SECRET,
@@ -207,7 +158,7 @@ app.post("/login", async (req, res) => {
 app.post("/register", async (req, res) => {
   // return res.json({ page: "register" });
   try {
-    const result = await insertUser(
+    const result = await SQLQueries.insertUser(
       req.body.user,
       req.body.email,
       req.body.md5Pwd
