@@ -39,12 +39,14 @@ CREATE TABLE cakes(
     discount decimal DEFAULT 0,
     image_source varchar(200) NOT NULL
 );
-insert into cakes (title, description, price, image_source)
+ALTER TABLE cakes
+ADD COLUMN is_new BOOLEAN DEFAULT FALSE NOT NULL,
+    ADD COLUMN is_active BOOLEAN DEFAULT TRUE NOT NULL;
+insert into cakes (title, price, image_source)
 values (
-        'Lemon cake',
-        'Introducing our healthy lemon cake, made with whole wheat flour, natural sweeteners and infused with fresh lemon juice. Perfect for any occasion and guilt-free indulgence. Try it now!',
-        50.5,
-        'https://raw.githubusercontent.com/Chikitonik/healthy_cakes_bot_react/main/src/assets/images/products/1.jpg'
+        'Berry cakes',
+        30.5,
+        'https://raw.githubusercontent.com/Chikitonik/healthy_cakes_bot_react/main/src/assets/images/products/3.png'
     );
 -- ingredients
 CREATE TABLE ingredients(
@@ -59,3 +61,11 @@ CREATE TABLE cake_ingredients(
     ingredient_id INTEGER REFERENCES ingredients(id) NOT NULL,
     weight_gr INTEGER NOT NULL
 );
+-- carts
+CREATE TABLE carts(
+    id SERIAL PRIMARY KEY,
+    username varchar(100) REFERENCES users(username) NOT NULL,
+    cake_id INTEGER REFERENCES cakes(id) NOT NULL,
+    price_with_discount decimal NOT NULL,
+    amount INTEGER
+)

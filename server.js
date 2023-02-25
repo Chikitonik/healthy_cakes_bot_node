@@ -2,6 +2,9 @@ const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const express = require("express");
 const { ROLES, authUser, authRole } = require("./basicAuth");
+const winston = require("winston");
+
+const SQLQueries = require("./components/SQLQueries.js");
 
 const [{ token }] = JSON.parse(fs.readFileSync("./botData.json", "utf8"));
 const TelegramBot = require("node-telegram-bot-api");
@@ -22,7 +25,30 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-const SQLQueries = require("./components/SQLQueries.js");
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp({
+      format: "YYYY-MM-DD HH:mm:ss",
+    }),
+    winston.format.json()
+  ),
+  transports: [
+    // - Write all logs with importance level of `error` or less to `error.log`
+    // - Write all logs with importance level of `info` or less to `combined.log`
+    new winston.transports.File({ filename: "error.log", level: "error" }),
+    new winston.transports.File({ filename: "combined.log" }),
+  ],
+});
+// If we're not in production then log to the `console` with the format:
+// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
+if (process.env.NODE_ENV !== "production") {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
+}
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
@@ -74,17 +100,18 @@ bot.on("message", async (msg) => {
 });
 
 app.get("/admin", authUser, authRole(ROLES.ADMIN), (req, res) => {
+  logger.info("Admin page hit");
   return res.status(200).json({ page: "Admin" });
 });
 
 app.get("/admin/:table", async (req, res) => {
-  // return res.json({ page: "register" });
   const SQLtable = req.params.table;
+  logger.info(`get admin table: ${SQLtable}`);
   try {
     const SQLtableData = await SQLQueries.selectDataFromSQLtable(SQLtable);
     res.json([{ SQLtableData }]);
-    // console.log("users :>> ", users);
   } catch (error) {
+    logger.error(`error get admin table: ${SQLtable}: error.message`);
     res.status(500).json({ error: error.message });
   }
 });
@@ -120,6 +147,56 @@ app.put("/admin/update/:table/:newRowValues", async (req, res) => {
       : res.json([{ message: "error" }]);
     console.log("answer :>> ", answer);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put(
+  "/store/carts/put/:username/:cake_id/:price_with_discount/:operation",
+  async (req, res) => {
+    const username = req.params.username;
+    const itemId = req.params.cake_id;
+    const priceWithDiscount = req.params.price_with_discount;
+    const operation = req.params.operation;
+    logger.info(
+      `operation ${operation} to carts: username ${username} itemId ${itemId} priceWithDiscount ${priceWithDiscount}`
+    );
+    try {
+      const answer = await SQLQueries.cartUpdate(
+        username,
+        itemId,
+        priceWithDiscount,
+        operation
+      );
+      answer === true
+        ? res.json([{ message: "success" }])
+        : res.json([{ message: "error" }]);
+      logger.info(`answer: ${answer}`);
+    } catch (error) {
+      logger.error(`error: ${error.message}`);
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+app.get("/cart/:username", async (req, res) => {
+  const username = req.params.username;
+  try {
+    const cartData = await SQLQueries.selectCartData(username);
+    res.json([{ cartData }]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/cart/count/:username", async (req, res) => {
+  const username = req.params.username;
+  logger.info(`Select rows count from carts, user ${username}`);
+  try {
+    const countRows = await SQLQueries.selectCartRowsCount(username);
+    res.json([{ countRows }]);
+  } catch (error) {
+    logger.error(`error: ${error.message}`);
     res.status(500).json({ error: error.message });
   }
 });
@@ -212,4 +289,4 @@ app.post("/web-data", async (req, res) => {
 });
 
 const PORT = 8000;
-app.listen(PORT, () => console.log("server started on " + PORT));
+app.listen(PORT, () => logger.info("server started on " + PORT));
