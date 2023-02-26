@@ -201,6 +201,17 @@ app.get("/cart/count/:username", async (req, res) => {
   }
 });
 
+app.get("/settings/:username", async (req, res) => {
+  const username = req.params.username;
+  try {
+    const userData = await SQLQueries.selectUserData(username);
+    res.json([{ userData }]);
+  } catch (error) {
+    logger.error(`error: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get("/user", async (req, res) => {
   // return res.json({ page: "register" });
   try {

@@ -101,6 +101,14 @@ const selectCartRowsCount = async (username) => {
   );
 };
 
+const selectUserData = async (username) => {
+  return querySQL(
+    `SELECT * FROM users
+            WHERE username = '${username}'`,
+    (result) => result.rows
+  );
+};
+
 module.exports = {
   selectDataFromSQLtable,
   deleteRowFromSQLtable,
@@ -110,4 +118,5 @@ module.exports = {
   cartUpdate,
   selectCartData,
   selectCartRowsCount,
+  selectUserData,
 };

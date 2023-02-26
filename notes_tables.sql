@@ -68,4 +68,28 @@ CREATE TABLE carts(
     cake_id INTEGER REFERENCES cakes(id) NOT NULL,
     price_with_discount decimal NOT NULL,
     amount INTEGER
+) -- customer_address
+CREATE TABLE customer_address(
+    id SERIAL PRIMARY KEY,
+    username varchar(100) REFERENCES users(username) NOT NULL,
+    city varchar(100),
+    street varchar(100),
+    home INTEGER,
+    flat INTEGER
+) -- order_header
+CREATE TABLE orders_header(
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT NOW(),
+    username varchar(100) REFERENCES users(username) NOT NULL,
+    address_id INTEGER REFERENCES customer_address(id) NOT NULL,
+    sum decimal NOT NULL,
+    is_ready BOOLEAN DEFAULT FALSE,
+    is_delivering BOOLEAN DEFAULT FALSE,
+    is_delivered BOOLEAN DEFAULT FALSE
+) -- orders_position
+CREATE TABLE orders_position(
+    order_id INTEGER REFERENCES orders_header(id) NOT NULL,
+    cake_id INTEGER REFERENCES cakes(id) NOT NULL,
+    price_with_discount decimal NOT NULL,
+    amount INTEGER
 )
