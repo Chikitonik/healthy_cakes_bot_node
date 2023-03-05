@@ -203,11 +203,42 @@ app.get("/cart/count/:username", async (req, res) => {
 
 app.get("/settings/:username", async (req, res) => {
   const username = req.params.username;
+  logger.info(`Select rows from users, user ${username}`);
   try {
     const userData = await SQLQueries.selectUserData(username);
     res.json([{ userData }]);
   } catch (error) {
     logger.error(`error: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/settings/address/:username", async (req, res) => {
+  const username = req.params.username;
+  logger.info(`Select rows from customer_address, user ${username}`);
+  try {
+    const userAddress = await SQLQueries.selectCustomerAddress(username);
+    res.json([{ userAddress }]);
+  } catch (error) {
+    logger.error(`error: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put("/settings/update/:row", async (req, res) => {
+  const row = req.params.row;
+  logger.info("UPDATE users", row);
+  try {
+    const answer = await SQLQueries.updateDataInSQLtable(
+      "users",
+      JSON.parse(row)
+    );
+    answer === true
+      ? res.json([{ message: "row updated" }])
+      : res.json([{ message: "error" }]);
+    logger.info(`answer: ${answer}`);
+  } catch (error) {
+    logger.error(`${error.message}`);
     res.status(500).json({ error: error.message });
   }
 });

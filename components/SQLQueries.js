@@ -109,6 +109,14 @@ const selectUserData = async (username) => {
   );
 };
 
+const selectCustomerAddress = async (username) => {
+  return querySQL(
+    `SELECT * FROM customer_address
+            WHERE username = '${username}'`,
+    (result) => result.rows
+  );
+};
+
 module.exports = {
   selectDataFromSQLtable,
   deleteRowFromSQLtable,
@@ -119,4 +127,5 @@ module.exports = {
   selectCartData,
   selectCartRowsCount,
   selectUserData,
+  selectCustomerAddress,
 };
