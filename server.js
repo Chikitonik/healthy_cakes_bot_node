@@ -111,8 +111,8 @@ app.get("/admin/:table", async (req, res) => {
     const SQLtableData = await SQLQueries.selectDataFromSQLtable(SQLtable);
     res.json([{ SQLtableData }]);
   } catch (error) {
-    logger.error(`error get admin table: ${SQLtable}: error.message`);
-    res.status(500).json({ error: error.message });
+    logger.error(`error get admin table: ${SQLtable}: error?.message`);
+    res.status(500).json({ error: error?.message });
   }
 });
 
@@ -128,7 +128,7 @@ app.delete("/admin/delete/:table/:id", async (req, res) => {
       : res.json([{ message: "error" }]);
     console.log("answer :>> ", answer);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error?.message });
   }
 });
 
@@ -147,7 +147,7 @@ app.put("/admin/update/:table/:newRowValues", async (req, res) => {
       : res.json([{ message: "error" }]);
     console.log("answer :>> ", answer);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error?.message });
   }
 });
 
@@ -173,8 +173,8 @@ app.put(
         : res.json([{ message: "error" }]);
       logger.info(`answer: ${answer}`);
     } catch (error) {
-      logger.error(`error: ${error.message}`);
-      res.status(500).json({ error: error.message });
+      logger.error(`error: ${error?.message}`);
+      res.status(500).json({ error: error?.message });
     }
   }
 );
@@ -185,7 +185,7 @@ app.get("/cart/:username", async (req, res) => {
     const cartData = await SQLQueries.selectCartData(username);
     res.json([{ cartData }]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error?.message });
   }
 });
 
@@ -196,8 +196,8 @@ app.get("/cart/count/:username", async (req, res) => {
     const countRows = await SQLQueries.selectCartRowsCount(username);
     res.json([{ countRows }]);
   } catch (error) {
-    logger.error(`error: ${error.message}`);
-    res.status(500).json({ error: error.message });
+    logger.error(`error: ${error?.message}`);
+    res.status(500).json({ error: error?.message });
   }
 });
 
@@ -208,8 +208,8 @@ app.get("/settings/:username", async (req, res) => {
     const userData = await SQLQueries.selectUserData(username);
     res.json([{ userData }]);
   } catch (error) {
-    logger.error(`error: ${error.message}`);
-    res.status(500).json({ error: error.message });
+    logger.error(`error: ${error?.message}`);
+    res.status(500).json({ error: error?.message });
   }
 });
 
@@ -220,17 +220,18 @@ app.get("/settings/address/:username", async (req, res) => {
     const userAddress = await SQLQueries.selectCustomerAddress(username);
     res.json([{ userAddress }]);
   } catch (error) {
-    logger.error(`error: ${error.message}`);
-    res.status(500).json({ error: error.message });
+    logger.error(`error: ${error?.message}`);
+    res.status(500).json({ error: error?.message });
   }
 });
 
-app.put("/settings/update/:row", async (req, res) => {
+app.put("/settings/update/:table/:row", async (req, res) => {
   const row = req.params.row;
-  logger.info("UPDATE users", row);
+  const table = req.params.table;
+  logger.info(`UPDATE , ${table}, ${row}`);
   try {
     const answer = await SQLQueries.updateDataInSQLtable(
-      "users",
+      table,
       JSON.parse(row)
     );
     answer === true
@@ -238,8 +239,8 @@ app.put("/settings/update/:row", async (req, res) => {
       : res.json([{ message: "error" }]);
     logger.info(`answer: ${answer}`);
   } catch (error) {
-    logger.error(`${error.message}`);
-    res.status(500).json({ error: error.message });
+    logger.error(`${error?.message}`);
+    res.status(500).json({ error: error?.message });
   }
 });
 
@@ -249,7 +250,7 @@ app.get("/user", async (req, res) => {
     const user = await SQLQueries.selectUser();
     res.json([{ user }]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error?.message });
   }
 });
 app.post("/login", async (req, res) => {
