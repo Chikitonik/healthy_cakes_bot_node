@@ -201,6 +201,71 @@ app.get("/cart/count/:username", async (req, res) => {
   }
 });
 
+app.get("/orders/:username", async (req, res) => {
+  const username = req.params.username;
+  logger.info(`Select rows from orders, user ${username}`);
+  try {
+    const ordersData = await SQLQueries.selectOrdersData(username);
+    res.json([{ ordersData }]);
+  } catch (error) {
+    logger.error(`error: ${error?.message}`);
+    res.status(500).json({ error: error?.message });
+  }
+});
+
+app.get("/orders_position/:ordersId", async (req, res) => {
+  const ordersId = req.params.ordersId;
+  logger.info(`Select rows from orders_position, irders ${ordersId}`);
+  try {
+    const ordersData = await SQLQueries.selectOrdersPositionsData(ordersId);
+    res.json([{ ordersData }]);
+  } catch (error) {
+    logger.error(`error: ${error?.message}`);
+    res.status(500).json({ error: error?.message });
+  }
+});
+
+// app.get("/orders/count/:username", async (req, res) => {
+//   const username = req.params.username;
+//   logger.info(`Select rows count from orders_header, user ${username}`);
+//   try {
+//     const countRows = await SQLQueries.selectOrdersRowsCount(username);
+//     res.json([{ countRows }]);
+//   } catch (error) {
+//     logger.error(`error: ${error?.message}`);
+//     res.status(500).json({ error: error?.message });
+//   }
+// });
+
+app.put(
+  "/cart/create_order/:username/:addressId/:totalSum/:positionsData/:cartRowsID",
+  async (req, res) => {
+    const username = req.params.username;
+    const addressId = req.params.addressId;
+    const totalSum = req.params.totalSum;
+    const positionsData = req.params.positionsData;
+    const cartRowsID = req.params.cartRowsID;
+    logger.info(`Create order, user ${username}`);
+    try {
+      const id = await SQLQueries.createOrder(
+        username,
+        addressId,
+        totalSum,
+        positionsData,
+        cartRowsID
+      );
+      await bot.sendMessage(
+        CHAT_FOR_BOT_REPLY_ID,
+        `User ${username}\nmade an order id ${id} total sum ${totalSum}`
+      );
+      res.json([{ id }]);
+    } catch (error) {
+      logger.error(`error: ${error?.message}`);
+      res.status(500).json({ error: error?.message });
+    }
+  }
+);
+
 app.get("/settings/:username", async (req, res) => {
   const username = req.params.username;
   logger.info(`Select rows from users, user ${username}`);

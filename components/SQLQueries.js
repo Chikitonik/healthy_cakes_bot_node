@@ -101,6 +101,60 @@ const selectCartRowsCount = async (username) => {
   );
 };
 
+const createOrder = async (
+  username,
+  addressId,
+  totalSum,
+  positionsData,
+  cartRowsID
+) => {
+  const result = await querySQL(
+    `INSERT INTO orders_header (username, address_id, sum)
+VALUES ('${username}', '${addressId}', '${totalSum}')
+RETURNING id`,
+    (result) => result.rows
+  );
+  const order_id = result[0].id;
+  // return result;
+  querySQL(
+    `INSERT INTO orders_position (order_id, cake_id, price_with_discount, amount)
+VALUES ${positionsData.replace(/'order_id'/g, order_id)}`,
+    (result) => result.rows
+  );
+  console.log("object :>> ", `DELETE FROM carts WHERE id IN (${cartRowsID})`);
+  await querySQL(
+    `DELETE FROM carts WHERE id IN (${cartRowsID})`,
+    (result) => result.rows
+  );
+  return order_id;
+};
+
+const selectOrdersData = async (username) => {
+  return querySQL(
+    `SELECT orders_header.*, customer_address.address FROM orders_header
+    LEFT JOIN customer_address ON orders_header.address_id = customer_address .id
+    WHERE orders_header.username = '${username}'`,
+    (result) => result.rows
+  );
+};
+
+const selectOrdersPositionsData = async (ordersId) => {
+  return querySQL(
+    `SELECT order_id, price_with_discount, amount, title  FROM orders_position
+LEFT JOIN cakes ON orders_position.cake_id = cakes.id
+WHERE orders_position.order_id IN (${ordersId})`,
+    (result) => result.rows
+  );
+};
+
+// const selectOrdersRowsCount = async (username) => {
+//   return querySQL(
+//     `SELECT count(*) FROM orders_header
+//     WHERE username = '${username}'`,
+//     (result) => result.rows
+//   );
+// };
+
 const selectUserData = async (username) => {
   return querySQL(
     `SELECT * FROM users
@@ -126,6 +180,10 @@ module.exports = {
   cartUpdate,
   selectCartData,
   selectCartRowsCount,
+  selectOrdersData,
+  selectOrdersPositionsData,
+  // selectOrdersRowsCount,
   selectUserData,
   selectCustomerAddress,
+  createOrder,
 };

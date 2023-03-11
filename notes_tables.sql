@@ -68,7 +68,8 @@ CREATE TABLE carts(
     cake_id INTEGER REFERENCES cakes(id) NOT NULL,
     price_with_discount decimal NOT NULL,
     amount INTEGER
-) -- customer_address
+);
+-- customer_address
 CREATE TABLE customer_address(
     id SERIAL PRIMARY KEY,
     username varchar(100) REFERENCES users(username) NOT NULL,
@@ -76,7 +77,8 @@ CREATE TABLE customer_address(
     street varchar(100),
     home INTEGER,
     flat INTEGER
-) -- order_header
+);
+-- order_header
 CREATE TABLE orders_header(
     id SERIAL PRIMARY KEY,
     created_at TIMESTAMP DEFAULT NOW(),
@@ -86,10 +88,27 @@ CREATE TABLE orders_header(
     is_ready BOOLEAN DEFAULT FALSE,
     is_delivering BOOLEAN DEFAULT FALSE,
     is_delivered BOOLEAN DEFAULT FALSE
-) -- orders_position
+);
+--
+insert into orders_header (username, address_id, sum)
+values (
+        'chikitonik',
+        2,
+        100
+    );
+-- orders_position
 CREATE TABLE orders_position(
+    id SERIAL PRIMARY KEY,
     order_id INTEGER REFERENCES orders_header(id) NOT NULL,
     cake_id INTEGER REFERENCES cakes(id) NOT NULL,
     price_with_discount decimal NOT NULL,
     amount INTEGER
-)
+);
+--
+insert into orders_position (order_id, cake_id, price_with_discount, amount)
+values (
+        2,
+        2,
+        100,
+        1
+    );
