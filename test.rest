@@ -22,3 +22,5 @@
 # DELETE http://localhost:8000/admin/delete/users/27
 # Content-Type: application/json
 
+# GET http://localhost:8000/orders_all/true/false/false
+# Content-Type: application/json

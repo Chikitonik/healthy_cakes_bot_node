@@ -138,6 +138,20 @@ const selectOrdersData = async (username) => {
   );
 };
 
+const selectAllOrdersData = async (is_ready, is_delivering, is_delivered) => {
+  const query = `SELECT orders_header.*, customer_address.address, users.email
+FROM orders_header
+LEFT JOIN customer_address ON orders_header.address_id = customer_address .id
+LEFT JOIN users ON users.username = orders_header.username
+WHERE orders_header.is_ready = ${is_ready} 
+AND orders_header.is_delivering = ${is_delivering} 
+AND orders_header.is_delivered = ${is_delivered} 
+`;
+  console.log(`Query: ${query}`);
+
+  return querySQL(query, (result) => result.rows);
+};
+
 const selectOrdersPositionsData = async (ordersId) => {
   return querySQL(
     `SELECT order_id, price_with_discount, amount, title  FROM orders_position
@@ -186,4 +200,5 @@ module.exports = {
   selectUserData,
   selectCustomerAddress,
   createOrder,
+  selectAllOrdersData,
 };

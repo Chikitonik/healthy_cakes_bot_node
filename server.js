@@ -213,6 +213,27 @@ app.get("/orders/:username", async (req, res) => {
   }
 });
 
+app.get(
+  "/orders_all/:is_ready/:is_delivering/:is_delivered",
+  async (req, res) => {
+    const is_ready = req.params.is_ready;
+    const is_delivering = req.params.is_delivering;
+    const is_delivered = req.params.is_delivered;
+    logger.info(`Select rows from all orders`);
+    try {
+      const ordersData = await SQLQueries.selectAllOrdersData(
+        is_ready,
+        is_delivering,
+        is_delivered
+      );
+      res.json([{ ordersData }]);
+    } catch (error) {
+      logger.error(`error: ${error?.message}`);
+      res.status(500).json({ error: error?.message });
+    }
+  }
+);
+
 app.get("/orders_position/:ordersId", async (req, res) => {
   const ordersId = req.params.ordersId;
   logger.info(`Select rows from orders_position, irders ${ordersId}`);
