@@ -13,7 +13,8 @@ const bot = new TelegramBot(token, { polling: true });
 const webAppUrl =
   "https://72be-2a0d-6fc2-4fa0-f00-8994-5ec0-6bda-ddca.eu.ngrok.io";
 
-const CHAT_FOR_BOT_REPLY_ID = "-614982099";
+const CHAT_FOR_BOT_ORDERS_ID = "-614982099";
+const CHAT_FOR_BOT_DELIVERY_ID = "-963891388";
 
 const app = express();
 app.use(express.json());
@@ -276,7 +277,7 @@ app.put(
         cartRowsID
       );
       await bot.sendMessage(
-        CHAT_FOR_BOT_REPLY_ID,
+        CHAT_FOR_BOT_ORDERS_ID,
         `User ${username}\nmade an order id ${id} total sum ${totalSum}`
       );
       res.json([{ id }]);
@@ -286,6 +287,29 @@ app.put(
     }
   }
 );
+
+app.put("/orders/set_status/:id/:column/:sum/:address", async (req, res) => {
+  const id = req.params.id;
+  const column = req.params.column;
+  const sum = req.params.sum;
+  const address = req.params.address;
+  try {
+    const answer = await SQLQueries.updateOrderStatus(column, id);
+    answer === true
+      ? res.json([{ message: "status updated" }])
+      : res.json([{ message: "error" }]);
+    // console.log("answer :>> ", answer);
+    if (column === "is_ready") {
+      await bot.sendMessage(
+        CHAT_FOR_BOT_DELIVERY_ID,
+        `Order id: ${id}, sum: ${sum}, address: ${address} is ready for delivery`
+      );
+    }
+    // res.json([{ id }]);
+  } catch (error) {
+    res.status(500).json({ error: error?.message });
+  }
+});
 
 app.get("/settings/:username", async (req, res) => {
   const username = req.params.username;
@@ -379,7 +403,7 @@ app.post("/web-data", async (req, res) => {
   const { queryId, products, totalPrice, user } = req.body;
   try {
     await bot.sendMessage(
-      CHAT_FOR_BOT_REPLY_ID,
+      CHAT_FOR_BOT_ORDERS_ID,
       `User @${
         user.username
       }\npurchased goods worth $ ${totalPrice}: \n - ${products

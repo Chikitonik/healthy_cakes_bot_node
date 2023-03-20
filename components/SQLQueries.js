@@ -143,9 +143,9 @@ const selectAllOrdersData = async (is_ready, is_delivering, is_delivered) => {
 FROM orders_header
 LEFT JOIN customer_address ON orders_header.address_id = customer_address .id
 LEFT JOIN users ON users.username = orders_header.username
-WHERE orders_header.is_ready = ${is_ready} 
-AND orders_header.is_delivering = ${is_delivering} 
-AND orders_header.is_delivered = ${is_delivered} 
+WHERE orders_header.is_ready IN (${is_ready}) 
+AND orders_header.is_delivering IN (${is_delivering})
+AND orders_header.is_delivered IN (${is_delivered})
 `;
   console.log(`Query: ${query}`);
 
@@ -161,13 +161,12 @@ WHERE orders_position.order_id IN (${ordersId})`,
   );
 };
 
-// const selectOrdersRowsCount = async (username) => {
-//   return querySQL(
-//     `SELECT count(*) FROM orders_header
-//     WHERE username = '${username}'`,
-//     (result) => result.rows
-//   );
-// };
+const updateOrderStatus = async (column, id) => {
+  return querySQL(
+    `UPDATE ORDERS_HEADER SET ${column} = true WHERE id = ${id}`,
+    (result) => (result.rowCount ? true : false)
+  );
+};
 
 const selectUserData = async (username) => {
   return querySQL(
@@ -201,4 +200,5 @@ module.exports = {
   selectCustomerAddress,
   createOrder,
   selectAllOrdersData,
+  updateOrderStatus,
 };
