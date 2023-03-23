@@ -11,7 +11,7 @@ const TelegramBot = require("node-telegram-bot-api");
 const bot = new TelegramBot(token, { polling: true });
 // const webAppUrl = "https://jocular-tartufo-23c9c3.netlify.app";
 const webAppUrl =
-  "https://72be-2a0d-6fc2-4fa0-f00-8994-5ec0-6bda-ddca.eu.ngrok.io";
+  "https://dad5-2a0d-6fc2-4fa1-c400-891d-85db-5017-af5e.eu.ngrok.io/?source=telegram";
 
 const CHAT_FOR_BOT_ORDERS_ID = "-614982099";
 const CHAT_FOR_BOT_DELIVERY_ID = "-963891388";
@@ -129,7 +129,8 @@ app.delete("/admin/delete/:table/:id", async (req, res) => {
       : res.json([{ message: "error" }]);
     console.log("answer :>> ", answer);
   } catch (error) {
-    res.status(500).json({ error: error?.message });
+    console.log("error.detail :>> ", error.detail);
+    res.status(500).json({ error: error?.detail });
   }
 });
 
@@ -275,6 +276,33 @@ app.put(
         totalSum,
         positionsData,
         cartRowsID
+      );
+      await bot.sendMessage(
+        CHAT_FOR_BOT_ORDERS_ID,
+        `User ${username}\nmade an order id ${id} total sum ${totalSum}`
+      );
+      res.json([{ id }]);
+    } catch (error) {
+      logger.error(`error: ${error?.message}`);
+      res.status(500).json({ error: error?.message });
+    }
+  }
+);
+
+app.put(
+  "/telegram_order_create/:username/:addressId/:totalSum/:positionsData",
+  async (req, res) => {
+    const username = req.params.username;
+    const addressId = req.params.addressId;
+    const totalSum = req.params.totalSum;
+    const positionsData = req.params.positionsData;
+    logger.info(`Create order, user ${username}`);
+    try {
+      const id = await SQLQueries.createOrderTelegram(
+        username,
+        addressId,
+        totalSum,
+        positionsData
       );
       await bot.sendMessage(
         CHAT_FOR_BOT_ORDERS_ID,

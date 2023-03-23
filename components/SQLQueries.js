@@ -60,8 +60,8 @@ const selectUser = async (username, md5Pwd) => {
 
 const insertUser = async (username, email, md5Pwd) => {
   return querySQL(
-    `INSERT INTO users (username, email, password)
-            VALUES ('${username}', '${email}', '${md5Pwd}')`,
+    `INSERT INTO users (username, email, password, role)
+            VALUES ('${username}', '${email}', '${md5Pwd}', 2)`,
     (result) => (result.rowCount ? true : false)
   );
 };
@@ -129,6 +129,38 @@ VALUES ${positionsData.replace(/'order_id'/g, order_id)}`,
   return order_id;
 };
 
+const createOrderTelegram = async (
+  username,
+  addressId,
+  totalSum,
+  positionsData
+) => {
+  const result = await querySQL(
+    `INSERT INTO orders_header (username, address_id, sum)
+VALUES ('${username}', '${addressId}', '${totalSum}')
+RETURNING id`,
+    (result) => result.rows
+  );
+  const order_id = result[0].id;
+  // return result;
+  querySQL(
+    `INSERT INTO orders_position (order_id, cake_id, price_with_discount, amount)
+VALUES ${positionsData.replace(/'order_id'/g, order_id)}`,
+    (result) => result.rows
+  );
+  console.log(
+    "qqqq :>> ",
+    `INSERT INTO orders_position (order_id, cake_id, price_with_discount, amount)
+  VALUES ${positionsData.replace(/'order_id'/g, order_id)}`
+  );
+  // console.log("object :>> ", `DELETE FROM carts WHERE id IN (${cartRowsID})`);
+  // await querySQL(
+  //   `DELETE FROM carts WHERE id IN (${cartRowsID})`,
+  //   (result) => result.rows
+  // );
+  return order_id;
+};
+
 const selectOrdersData = async (username) => {
   return querySQL(
     `SELECT orders_header.*, customer_address.address FROM orders_header
@@ -154,7 +186,7 @@ AND orders_header.is_delivered IN (${is_delivered})
 
 const selectOrdersPositionsData = async (ordersId) => {
   return querySQL(
-    `SELECT order_id, price_with_discount, amount, title  FROM orders_position
+    `SELECT order_id, price_with_discount, amount, title, image_source  FROM orders_position
 LEFT JOIN cakes ON orders_position.cake_id = cakes.id
 WHERE orders_position.order_id IN (${ordersId})`,
     (result) => result.rows
@@ -201,4 +233,5 @@ module.exports = {
   createOrder,
   selectAllOrdersData,
   updateOrderStatus,
+  createOrderTelegram,
 };
